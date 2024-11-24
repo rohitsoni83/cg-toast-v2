@@ -9,20 +9,6 @@ const genId = /* @__PURE__ */ (() => {
     return (++count).toString();
   };
 })();
-const getBackgroundColor = (type) => {
-  switch (type) {
-    case "info":
-      return "rgba(50, 50, 50, 1)";
-    case "success":
-      return "rgba(46, 125, 50, 1)";
-    case "error":
-      return "rgba(211, 47, 47, 1)";
-    case "warning":
-      return "rgba(237, 108, 2, 1)";
-    default:
-      return "#fff";
-  }
-};
 
 const TOAST_LIMIT = 20;
 var ActionType = /* @__PURE__ */ ((ActionType2) => {
@@ -133,9 +119,7 @@ const dispatch = (action) => {
 const defaultTimeouts = {
   blank: 4e3,
   error: 4e3,
-  success: 4e3,
-  info: 4e3,
-  warning: 4e3,
+  success: 2e3,
   loading: Infinity,
   custom: 4e3
 };
@@ -178,28 +162,16 @@ const createToast = (message, type = "blank", opts) => ({
   message,
   pauseDuration: 0,
   ...opts,
-  id: opts?.id || genId(),
-  style: {
-    backgroundColor: opts?.style?.backgroundColor ? opts?.style?.backgroundColor : opts?.theme === "coloured" ? getBackgroundColor(type) : "#fff",
-    color: opts?.style?.color ? opts?.style?.color : opts?.theme === "coloured" ? type === "blank" ? "#262626" : "#fff" : "#262626",
-    ...opts?.style
-  },
-  autoClose: opts?.autoClose === false ? false : true
+  id: opts?.id || genId()
 });
 const createHandler = (type) => (message, options) => {
-  const toast2 = createToast(
-    typeof message === "string" ? message.trim() : message,
-    type,
-    { ...options, theme: options?.theme ? options?.theme : "coloured" }
-  );
+  const toast2 = createToast(message, type, options);
   dispatch({ type: ActionType.UPSERT_TOAST, toast: toast2 });
   return toast2.id;
 };
 const toast = (message, opts) => createHandler("blank")(message, opts);
-toast.success = createHandler("success");
-toast.info = createHandler("info");
 toast.error = createHandler("error");
-toast.warning = createHandler("warning");
+toast.success = createHandler("success");
 toast.loading = createHandler("loading");
 toast.custom = createHandler("custom");
 toast.dismiss = (toastId) => {
@@ -248,7 +220,7 @@ const useToaster = (toastOptions) => {
     }
     const now = Date.now();
     const timeouts = toasts.map((t) => {
-      if (t.duration === Infinity || !t.autoClose) {
+      if (t.duration === Infinity) {
         return;
       }
       const durationLeft = (t.duration || 0) + t.pauseDuration - (now - t.createdAt);

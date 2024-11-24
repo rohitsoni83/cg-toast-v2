@@ -1,15 +1,14 @@
-import { css, setup } from "goober";
-import * as React from "react";
-import { createPortal } from "react-dom";
+import { css, setup } from 'goober';
+import * as React from 'react';
 import {
   resolveValue,
   ToasterProps,
   ToastPosition,
   ToastWrapperProps,
-} from "../core/types";
-import { useToaster } from "../core/use-toaster";
-import { prefersReducedMotion } from "../core/utils";
-import { ToastBar } from "./toast-bar";
+} from '../core/types';
+import { useToaster } from '../core/use-toaster';
+import { prefersReducedMotion } from '../core/utils';
+import { ToastBar } from './toast-bar';
 
 setup(React.createElement);
 
@@ -49,22 +48,22 @@ const getPositionStyle = (
   position: ToastPosition,
   offset: number
 ): React.CSSProperties => {
-  const top = position.includes("top");
+  const top = position.includes('top');
   const verticalStyle: React.CSSProperties = top ? { top: 0 } : { bottom: 0 };
-  const horizontalStyle: React.CSSProperties = position.includes("center")
+  const horizontalStyle: React.CSSProperties = position.includes('center')
     ? {
-        justifyContent: "center",
+        justifyContent: 'center',
       }
-    : position.includes("right")
+    : position.includes('right')
     ? {
-        justifyContent: "flex-end",
+        justifyContent: 'flex-end',
       }
     : {};
   return {
     left: 0,
     right: 0,
-    display: "flex",
-    position: "absolute",
+    display: 'flex',
+    position: 'absolute',
     transition: prefersReducedMotion()
       ? undefined
       : `all 230ms cubic-bezier(.21,1.02,.73,1)`,
@@ -85,30 +84,30 @@ const DEFAULT_OFFSET = 16;
 
 export const Toaster: React.FC<ToasterProps> = ({
   reverseOrder,
-  position = "top-center",
+  position = 'top-center',
   toastOptions,
   gutter,
   children,
   containerStyle,
   containerClassName,
-  hidden = false,
 }) => {
   const { toasts, handlers } = useToaster(toastOptions);
 
-  return createPortal(
+  return (
     <div
       style={{
-        position: "fixed",
-        zIndex: 99999,
+        position: 'fixed',
+        zIndex: 9999,
         top: DEFAULT_OFFSET,
         left: DEFAULT_OFFSET,
         right: DEFAULT_OFFSET,
         bottom: DEFAULT_OFFSET,
-        pointerEvents: "none",
+        pointerEvents: 'none',
         ...containerStyle,
       }}
       className={containerClassName}
-      hidden={hidden}
+      onMouseEnter={handlers.startPause}
+      onMouseLeave={handlers.endPause}
     >
       {toasts.map((t) => {
         const toastPosition = t.position || position;
@@ -124,10 +123,10 @@ export const Toaster: React.FC<ToasterProps> = ({
             id={t.id}
             key={t.id}
             onHeightUpdate={handlers.updateHeight}
-            className={t.visible ? activeClass : ""}
+            className={t.visible ? activeClass : ''}
             style={positionStyle}
           >
-            {t.type === "custom" ? (
+            {t.type === 'custom' ? (
               resolveValue(t.message, t)
             ) : children ? (
               children(t)
@@ -137,7 +136,6 @@ export const Toaster: React.FC<ToasterProps> = ({
           </ToastWrapper>
         );
       })}
-    </div>,
-    document.body
+    </div>
   );
 };

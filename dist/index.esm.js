@@ -1,8 +1,7 @@
 "use client";
 import * as React from 'react';
-import React__default, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
-import { createPortal } from 'react-dom';
 
 const isFunction = (valOrFunction) => typeof valOrFunction === "function";
 const resolveValue = (valOrFunction, arg) => isFunction(valOrFunction) ? valOrFunction(arg) : valOrFunction;
@@ -23,20 +22,6 @@ const prefersReducedMotion = /* @__PURE__ */ (() => {
     return shouldReduceMotion;
   };
 })();
-const getBackgroundColor = (type) => {
-  switch (type) {
-    case "info":
-      return "rgba(50, 50, 50, 1)";
-    case "success":
-      return "rgba(46, 125, 50, 1)";
-    case "error":
-      return "rgba(211, 47, 47, 1)";
-    case "warning":
-      return "rgba(237, 108, 2, 1)";
-    default:
-      return "#fff";
-  }
-};
 
 const TOAST_LIMIT = 20;
 var ActionType = /* @__PURE__ */ ((ActionType2) => {
@@ -147,9 +132,7 @@ const dispatch = (action) => {
 const defaultTimeouts = {
   blank: 4e3,
   error: 4e3,
-  success: 4e3,
-  info: 4e3,
-  warning: 4e3,
+  success: 2e3,
   loading: Infinity,
   custom: 4e3
 };
@@ -192,28 +175,16 @@ const createToast = (message, type = "blank", opts) => ({
   message,
   pauseDuration: 0,
   ...opts,
-  id: opts?.id || genId(),
-  style: {
-    backgroundColor: opts?.style?.backgroundColor ? opts?.style?.backgroundColor : opts?.theme === "coloured" ? getBackgroundColor(type) : "#fff",
-    color: opts?.style?.color ? opts?.style?.color : opts?.theme === "coloured" ? type === "blank" ? "#262626" : "#fff" : "#262626",
-    ...opts?.style
-  },
-  autoClose: opts?.autoClose === false ? false : true
+  id: opts?.id || genId()
 });
 const createHandler = (type) => (message, options) => {
-  const toast2 = createToast(
-    typeof message === "string" ? message.trim() : message,
-    type,
-    { ...options, theme: options?.theme ? options?.theme : "coloured" }
-  );
+  const toast2 = createToast(message, type, options);
   dispatch({ type: ActionType.UPSERT_TOAST, toast: toast2 });
   return toast2.id;
 };
 const toast = (message, opts) => createHandler("blank")(message, opts);
-toast.success = createHandler("success");
-toast.info = createHandler("info");
 toast.error = createHandler("error");
-toast.warning = createHandler("warning");
+toast.success = createHandler("success");
 toast.loading = createHandler("loading");
 toast.custom = createHandler("custom");
 toast.dismiss = (toastId) => {
@@ -262,7 +233,7 @@ const useToaster = (toastOptions) => {
     }
     const now = Date.now();
     const timeouts = toasts.map((t) => {
-      if (t.duration === Infinity || !t.autoClose) {
+      if (t.duration === Infinity) {
         return;
       }
       const durationLeft = (t.duration || 0) + t.pauseDuration - (now - t.createdAt);
@@ -311,30 +282,150 @@ const useToaster = (toastOptions) => {
 
 let e={data:""},t=t=>"object"==typeof window?((t?t.querySelector("#_goober"):window._goober)||Object.assign((t||document.head).appendChild(document.createElement("style")),{innerHTML:" ",id:"_goober"})).firstChild:t||e,l=/(?:([\u0080-\uFFFF\w-%@]+) *:? *([^{;]+?);|([^;}{]*?) *{)|(}\s*)/g,a=/\/\*[^]*?\*\/|  +/g,n=/\n+/g,o=(e,t)=>{let r="",l="",a="";for(let n in e){let c=e[n];"@"==n[0]?"i"==n[1]?r=n+" "+c+";":l+="f"==n[1]?o(c,n):n+"{"+o(c,"k"==n[1]?"":t)+"}":"object"==typeof c?l+=o(c,t?t.replace(/([^,])+/g,e=>n.replace(/([^,]*:\S+\([^)]*\))|([^,])+/g,t=>/&/.test(t)?t.replace(/&/g,e):e?e+" "+t:t)):n):null!=c&&(n=/^--/.test(n)?n:n.replace(/[A-Z]/g,"-$&").toLowerCase(),a+=o.p?o.p(n,c):n+":"+c+";");}return r+(t&&a?t+"{"+a+"}":a)+l},c={},s=e=>{if("object"==typeof e){let t="";for(let r in e)t+=r+s(e[r]);return t}return e},i=(e,t,r,i,p)=>{let u=s(e),d=c[u]||(c[u]=(e=>{let t=0,r=11;for(;t<e.length;)r=101*r+e.charCodeAt(t++)>>>0;return "go"+r})(u));if(!c[d]){let t=u!==e?e:(e=>{let t,r,o=[{}];for(;t=l.exec(e.replace(a,""));)t[4]?o.shift():t[3]?(r=t[3].replace(n," ").trim(),o.unshift(o[0][r]=o[0][r]||{})):o[0][t[1]]=t[2].replace(n," ").trim();return o[0]})(e);c[d]=o(p?{["@keyframes "+d]:t}:t,r?"":"."+d);}let f=r&&c.g?c.g:null;return r&&(c.g=c[d]),((e,t,r,l)=>{l?t.data=t.data.replace(l,e):-1===t.data.indexOf(e)&&(t.data=r?e+t.data:t.data+e);})(c[d],t,i,f),d},p=(e,t,r)=>e.reduce((e,l,a)=>{let n=t[a];if(n&&n.call){let e=n(r),t=e&&e.props&&e.props.className||/^go/.test(e)&&e;n=t?"."+t:e&&"object"==typeof e?e.props?"":o(e,""):!1===e?"":e;}return e+l+(null==n?"":n)},"");function u(e){let r=this||{},l=e.call?e(r.p):e;return i(l.unshift?l.raw?p(l,[].slice.call(arguments,1),r.p):l.reduce((e,t)=>Object.assign(e,t&&t.call?t(r.p):t),{}):l,t(r.target),r.g,r.o,r.k)}let d,f,g;u.bind({g:1});let h=u.bind({k:1});function m(e,t,r,l){o.p=t,d=e,f=r,g=l;}function j(e,t){let r=this||{};return function(){let l=arguments;function a(n,o){let c=Object.assign({},n),s=c.className||a.className;r.p=Object.assign({theme:f&&f()},c),r.o=/ *go\d+/.test(s),c.className=u.apply(r,l)+(s?" "+s:"");let i=e;return e[0]&&(i=c.as||e,delete c.as),g&&i[0]&&g(c),d(i,c)}return a}}
 
+const circleAnimation$1 = h`
+from {
+  transform: scale(0) rotate(45deg);
+	opacity: 0;
+}
+to {
+ transform: scale(1) rotate(45deg);
+  opacity: 1;
+}`;
+const firstLineAnimation = h`
+from {
+  transform: scale(0);
+  opacity: 0;
+}
+to {
+  transform: scale(1);
+  opacity: 1;
+}`;
+const secondLineAnimation = h`
+from {
+  transform: scale(0) rotate(90deg);
+	opacity: 0;
+}
+to {
+  transform: scale(1) rotate(90deg);
+	opacity: 1;
+}`;
+const ErrorIcon = j("div")`
+  width: 20px;
+  opacity: 0;
+  height: 20px;
+  border-radius: 10px;
+  background: ${(p) => p.primary || "#ff4b4b"};
+  position: relative;
+  transform: rotate(45deg);
+
+  animation: ${circleAnimation$1} 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+    forwards;
+  animation-delay: 100ms;
+
+  &:after,
+  &:before {
+    content: '';
+    animation: ${firstLineAnimation} 0.15s ease-out forwards;
+    animation-delay: 150ms;
+    position: absolute;
+    border-radius: 3px;
+    opacity: 0;
+    background: ${(p) => p.secondary || "#fff"};
+    bottom: 9px;
+    left: 4px;
+    height: 2px;
+    width: 12px;
+  }
+
+  &:before {
+    animation: ${secondLineAnimation} 0.15s ease-out forwards;
+    animation-delay: 180ms;
+    transform: rotate(90deg);
+  }
+`;
+
+const rotate = h`
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+`;
+const LoaderIcon = j("div")`
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+  border: 2px solid;
+  border-radius: 100%;
+  border-color: ${(p) => p.secondary || "#e0e0e0"};
+  border-right-color: ${(p) => p.primary || "#616161"};
+  animation: ${rotate} 1s linear infinite;
+`;
+
+const circleAnimation = h`
+from {
+  transform: scale(0) rotate(45deg);
+	opacity: 0;
+}
+to {
+  transform: scale(1) rotate(45deg);
+	opacity: 1;
+}`;
+const checkmarkAnimation = h`
+0% {
+	height: 0;
+	width: 0;
+	opacity: 0;
+}
+40% {
+  height: 0;
+	width: 6px;
+	opacity: 1;
+}
+100% {
+  opacity: 1;
+  height: 10px;
+}`;
+const CheckmarkIcon = j("div")`
+  width: 20px;
+  opacity: 0;
+  height: 20px;
+  border-radius: 10px;
+  background: ${(p) => p.primary || "#61d345"};
+  position: relative;
+  transform: rotate(45deg);
+
+  animation: ${circleAnimation} 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+    forwards;
+  animation-delay: 100ms;
+  &:after {
+    content: '';
+    box-sizing: border-box;
+    animation: ${checkmarkAnimation} 0.2s ease-out forwards;
+    opacity: 0;
+    animation-delay: 200ms;
+    position: absolute;
+    border-right: 2px solid;
+    border-bottom: 2px solid;
+    border-color: ${(p) => p.secondary || "#fff"};
+    bottom: 6px;
+    left: 6px;
+    height: 10px;
+    width: 6px;
+  }
+`;
+
+const StatusWrapper = j("div")`
+  position: absolute;
+`;
 const IndicatorWrapper = j("div")`
   position: relative;
   display: flex;
+  justify-content: center;
   align-items: center;
   min-width: 20px;
   min-height: 20px;
-  font-size: 18px;
-`;
-const rotation = h`
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }`;
-const Spinner = j("div")`
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: inline-block;
-  border-top: 3px solid #262626;
-  border-right: 3px solid transparent;
-  box-sizing: border-box;
-  animation: ${rotation} 1s linear infinite;
 `;
 const enter = h`
 from {
@@ -354,7 +445,7 @@ const AnimatedIconWrapper = j("div")`
     forwards;
 `;
 const ToastIcon = ({ toast }) => {
-  const { icon, type, theme, iconColor } = toast;
+  const { icon, type, iconTheme } = toast;
   if (icon !== void 0) {
     if (typeof icon === "string") {
       return /* @__PURE__ */ jsx(AnimatedIconWrapper, { children: icon });
@@ -365,135 +456,10 @@ const ToastIcon = ({ toast }) => {
   if (type === "blank") {
     return null;
   }
-  return /* @__PURE__ */ jsx(IndicatorWrapper, { children: type !== "loading" && (type === "success" ? /* @__PURE__ */ jsxs(
-    "svg",
-    {
-      width: "19px",
-      height: "19px",
-      viewBox: "0 0 24 24",
-      xmlns: "http://www.w3.org/2000/svg",
-      children: [
-        /* @__PURE__ */ jsx("g", { id: "SVGRepo_bgCarrier", "stroke-width": "0" }),
-        /* @__PURE__ */ jsx(
-          "g",
-          {
-            id: "SVGRepo_tracerCarrier",
-            "stroke-linecap": "round",
-            "stroke-linejoin": "round"
-          }
-        ),
-        /* @__PURE__ */ jsx("g", { id: "SVGRepo_iconCarrier", children: /* @__PURE__ */ jsx(
-          "path",
-          {
-            "fill-rule": "evenodd",
-            "clip-rule": "evenodd",
-            d: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm-1.5-5.009c0-.867.659-1.491 1.491-1.491.85 0 1.509.624 1.509 1.491 0 .867-.659 1.509-1.509 1.509-.832 0-1.491-.642-1.491-1.509zM11.172 6a.5.5 0 0 0-.499.522l.306 7a.5.5 0 0 0 .5.478h1.043a.5.5 0 0 0 .5-.478l.305-7a.5.5 0 0 0-.5-.522h-1.655z",
-            fill: "#000000",
-            style: {
-              fill: iconColor ? iconColor : theme === "coloured" ? "#fff" : "rgb(211, 47, 47)"
-            }
-          }
-        ) })
-      ]
-    }
-  ) : type === "info" ? /* @__PURE__ */ jsxs(
-    "svg",
-    {
-      fill: "#000000",
-      xmlns: "http://www.w3.org/2000/svg",
-      width: "18px",
-      height: "18px",
-      viewBox: "0 0 52 52",
-      "enable-background": "new 0 0 52 52",
-      children: [
-        /* @__PURE__ */ jsx("g", { id: "SVGRepo_bgCarrier", "stroke-width": "0" }),
-        /* @__PURE__ */ jsx(
-          "g",
-          {
-            id: "SVGRepo_tracerCarrier",
-            "stroke-linecap": "round",
-            "stroke-linejoin": "round"
-          }
-        ),
-        /* @__PURE__ */ jsxs("g", { id: "SVGRepo_iconCarrier", children: [
-          /* @__PURE__ */ jsx(
-            "path",
-            {
-              d: "M26,2C12.7,2,2,12.7,2,26s10.7,24,24,24s24-10.7,24-24S39.3,2,26,2z M26,14.1c1.7,0,3,1.3,3,3s-1.3,3-3,3 s-3-1.3-3-3S24.3,14.1,26,14.1z M31,35.1c0,0.5-0.4,0.9-1,0.9h-3c-0.4,0-3,0-3,0h-2c-0.5,0-1-0.3-1-0.9v-2c0-0.5,0.4-1.1,1-1.1l0,0 c0.5,0,1-0.3,1-0.9v-4c0-0.5-0.4-1.1-1-1.1l0,0c-0.5,0-1-0.3-1-0.9v-2c0-0.5,0.4-1.1,1-1.1h6c0.5,0,1,0.5,1,1.1v8 c0,0.5,0.4,0.9,1,0.9l0,0c0.5,0,1,0.5,1,1.1V35.1z",
-              style: {
-                fill: iconColor ? iconColor : theme === "coloured" ? "#fff" : "rgb(2, 136, 209)"
-              }
-            }
-          ),
-          " "
-        ] })
-      ]
-    }
-  ) : type === "warning" ? /* @__PURE__ */ jsxs(
-    "svg",
-    {
-      fill: "#000000",
-      width: "18px",
-      height: "18px",
-      viewBox: "0 0 24 24",
-      xmlns: "http://www.w3.org/2000/svg",
-      children: [
-        /* @__PURE__ */ jsx("g", { id: "SVGRepo_bgCarrier", "stroke-width": "0" }),
-        /* @__PURE__ */ jsx(
-          "g",
-          {
-            id: "SVGRepo_tracerCarrier",
-            "stroke-linecap": "round",
-            "stroke-linejoin": "round"
-          }
-        ),
-        /* @__PURE__ */ jsx("g", { id: "SVGRepo_iconCarrier", children: /* @__PURE__ */ jsx(
-          "path",
-          {
-            d: "M22.25,17.55,14.63,3.71a3,3,0,0,0-5.26,0L1.75,17.55A3,3,0,0,0,4.38,22H19.62a3,3,0,0,0,2.63-4.45ZM12,18a1,1,0,1,1,1-1A1,1,0,0,1,12,18Zm1-5a1,1,0,0,1-2,0V9a1,1,0,0,1,2,0Z",
-            style: {
-              fill: iconColor ? iconColor : theme === "coloured" ? "#262626" : "rgb(245, 124, 0)"
-            }
-          }
-        ) })
-      ]
-    }
-  ) : /* @__PURE__ */ jsxs(
-    "svg",
-    {
-      viewBox: "0 0 48 48",
-      xmlns: "http://www.w3.org/2000/svg",
-      fill: "#000000",
-      width: "18px",
-      height: "18px",
-      children: [
-        /* @__PURE__ */ jsx("g", { id: "SVGRepo_bgCarrier", "stroke-width": "0" }),
-        /* @__PURE__ */ jsx(
-          "g",
-          {
-            id: "SVGRepo_tracerCarrier",
-            "stroke-linecap": "round",
-            "stroke-linejoin": "round"
-          }
-        ),
-        /* @__PURE__ */ jsxs("g", { id: "SVGRepo_iconCarrier", children: [
-          /* @__PURE__ */ jsx("title", { children: "check-circle-solid" }),
-          /* @__PURE__ */ jsxs("g", { id: "Layer_2", "data-name": "Layer 2", children: [
-            /* @__PURE__ */ jsx("g", { id: "invisible_box", "data-name": "invisible box", children: /* @__PURE__ */ jsx("rect", { width: "48", height: "48", fill: "none" }) }),
-            /* @__PURE__ */ jsx("g", { id: "icons_Q2", "data-name": "icons Q2", children: /* @__PURE__ */ jsx(
-              "path",
-              {
-                d: "M24,2A22,22,0,1,0,46,24,21.9,21.9,0,0,0,24,2ZM35.4,18.4l-14,14a1.9,1.9,0,0,1-2.8,0l-5.9-5.9a2.2,2.2,0,0,1-.4-2.7,2,2,0,0,1,3.1-.2L20,28.2,32.6,15.6a2,2,0,0,1,2.8,2.8Z",
-                style: {
-                  fill: iconColor ? iconColor : theme === "coloured" ? "#fff" : "rgb(56, 142, 60)"
-                }
-              }
-            ) })
-          ] })
-        ] })
-      ]
-    }
-  )) || type === "loading" && /* @__PURE__ */ jsx(Spinner, {}) });
+  return /* @__PURE__ */ jsxs(IndicatorWrapper, { children: [
+    /* @__PURE__ */ jsx(LoaderIcon, { ...iconTheme }),
+    type !== "loading" && /* @__PURE__ */ jsx(StatusWrapper, { children: type === "error" ? /* @__PURE__ */ jsx(ErrorIcon, { ...iconTheme }) : /* @__PURE__ */ jsx(CheckmarkIcon, { ...iconTheme }) })
+  ] });
 };
 
 const enterAnimation = (factor) => `
@@ -509,46 +475,23 @@ const fadeOutAnimation = `0%{opacity:1;} 100%{opacity:0;}`;
 const ToastBarBase = j("div")`
   display: flex;
   align-items: center;
+  background: #fff;
+  color: #363636;
   line-height: 1.3;
   will-change: transform;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1), 0 3px 3px rgba(0, 0, 0, 0.05);
-  max-width: 360px;
+  max-width: 350px;
   pointer-events: auto;
+  padding: 8px 10px;
   border-radius: 8px;
-  position: relative;
-  font-size: 14px;
-  padding: 6px 8px;
-  font-family: "Roboto", sans-serif;
 `;
-const MessageBarBase = j("div")`
+const Message = j("div")`
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
+  margin: 4px 10px;
   color: inherit;
-  margin: 4px 4px 4px 8px;
   flex: 1 1 auto;
   white-space: pre-line;
-`;
-const ProgressbarBase = j("div")`
-  position: absolute;
-  bottom: 0.1%;
-  left: 0.5%;
-  right: 0.1%;
-  width: 98%;
-  height: 0.3rem;
-  background-color: transparent;
-`;
-const ProgressbarSpan = j("div")`
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  height: 100%;
-`;
-const CloseButton = j("span")`
-  display: flex;
-  align-items: center;
-  margin-left: 16px;
-  cursor: pointer;
 `;
 const getAnimationStyle = (position, visible) => {
   const top = position.includes("top");
@@ -558,42 +501,14 @@ const getAnimationStyle = (position, visible) => {
     animation: visible ? `${h(enter)} 0.35s cubic-bezier(.21,1.02,.73,1) forwards` : `${h(exit)} 0.4s forwards cubic-bezier(.06,.71,.55,1)`
   };
 };
-const ToastBar = React__default.memo(
+const ToastBar = React.memo(
   ({ toast, position, style, children }) => {
     const animationStyle = toast.height ? getAnimationStyle(
       toast.position || position || "top-center",
       toast.visible
     ) : { opacity: 0 };
     const icon = /* @__PURE__ */ jsx(ToastIcon, { toast });
-    const message = /* @__PURE__ */ jsx(MessageBarBase, { ...toast.ariaProps, children: resolveValue(toast.message, toast) });
-    const closeButtonSpan = /* @__PURE__ */ jsx(CloseButton, { children: toast.closeButton });
-    const progressBarRef = useRef();
-    const [progress, setProgress] = useState(100);
-    useEffect(() => {
-      const complete = 0;
-      if (toast.duration) {
-        progressBarRef.current = setInterval(() => {
-          if (progress > complete) {
-            setProgress((prev) => prev - 1);
-          } else {
-            return;
-          }
-        }, toast.duration / 100);
-      }
-      return () => {
-        clearInterval(progressBarRef.current);
-      };
-    }, []);
-    const progressbar = toast.progressbar && /* @__PURE__ */ jsx(ProgressbarBase, { children: /* @__PURE__ */ jsx(
-      ProgressbarSpan,
-      {
-        style: {
-          width: `${progress}%`,
-          backgroundColor: toast.theme === "coloured" ? "#fff" : getBackgroundColor(toast.type),
-          borderRadius: toast.style?.borderRadius ? toast.style?.borderRadius : "8px"
-        }
-      }
-    ) });
+    const message = /* @__PURE__ */ jsx(Message, { ...toast.ariaProps, children: resolveValue(toast.message, toast) });
     return /* @__PURE__ */ jsx(
       ToastBarBase,
       {
@@ -608,9 +523,7 @@ const ToastBar = React__default.memo(
           message
         }) : /* @__PURE__ */ jsxs(Fragment, { children: [
           icon,
-          message,
-          toast.closeButton && closeButtonSpan,
-          toast.progressbar && progressbar
+          message
         ] })
       }
     );
@@ -677,51 +590,48 @@ const Toaster = ({
   gutter,
   children,
   containerStyle,
-  containerClassName,
-  hidden = false
+  containerClassName
 }) => {
   const { toasts, handlers } = useToaster(toastOptions);
-  return createPortal(
-    /* @__PURE__ */ jsx(
-      "div",
-      {
-        style: {
-          position: "fixed",
-          zIndex: 99999,
-          top: DEFAULT_OFFSET,
-          left: DEFAULT_OFFSET,
-          right: DEFAULT_OFFSET,
-          bottom: DEFAULT_OFFSET,
-          pointerEvents: "none",
-          ...containerStyle
-        },
-        className: containerClassName,
-        hidden,
-        children: toasts.map((t) => {
-          const toastPosition = t.position || position;
-          const offset = handlers.calculateOffset(t, {
-            reverseOrder,
-            gutter,
-            defaultPosition: position
-          });
-          const positionStyle = getPositionStyle(toastPosition, offset);
-          return /* @__PURE__ */ jsx(
-            ToastWrapper,
-            {
-              id: t.id,
-              onHeightUpdate: handlers.updateHeight,
-              className: t.visible ? activeClass : "",
-              style: positionStyle,
-              children: t.type === "custom" ? resolveValue(t.message, t) : children ? children(t) : /* @__PURE__ */ jsx(ToastBar, { toast: t, position: toastPosition })
-            },
-            t.id
-          );
-        })
-      }
-    ),
-    document.body
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      style: {
+        position: "fixed",
+        zIndex: 9999,
+        top: DEFAULT_OFFSET,
+        left: DEFAULT_OFFSET,
+        right: DEFAULT_OFFSET,
+        bottom: DEFAULT_OFFSET,
+        pointerEvents: "none",
+        ...containerStyle
+      },
+      className: containerClassName,
+      onMouseEnter: handlers.startPause,
+      onMouseLeave: handlers.endPause,
+      children: toasts.map((t) => {
+        const toastPosition = t.position || position;
+        const offset = handlers.calculateOffset(t, {
+          reverseOrder,
+          gutter,
+          defaultPosition: position
+        });
+        const positionStyle = getPositionStyle(toastPosition, offset);
+        return /* @__PURE__ */ jsx(
+          ToastWrapper,
+          {
+            id: t.id,
+            onHeightUpdate: handlers.updateHeight,
+            className: t.visible ? activeClass : "",
+            style: positionStyle,
+            children: t.type === "custom" ? resolveValue(t.message, t) : children ? children(t) : /* @__PURE__ */ jsx(ToastBar, { toast: t, position: toastPosition })
+          },
+          t.id
+        );
+      })
+    }
   );
 };
 
-export { ToastBar, ToastIcon, Toaster, toast as default, resolveValue, toast, useToaster, useStore as useToasterStore };
+export { CheckmarkIcon, ErrorIcon, LoaderIcon, ToastBar, ToastIcon, Toaster, toast as default, resolveValue, toast, useToaster, useStore as useToasterStore };
 //# sourceMappingURL=index.esm.js.map
