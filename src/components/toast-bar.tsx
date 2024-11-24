@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { styled, keyframes } from "goober";
 
 import { Toast, ToastPosition, resolveValue, Renderable } from "../core/types";
@@ -112,43 +112,43 @@ export const ToastBar: React.FC<ToastBarProps> = React.memo(
     );
     const closeButtonSpan = <CloseButton>{toast.closeButton}</CloseButton>;
 
-    // // progressBar
-    // const progressBarRef = useRef<ReturnType<typeof setInterval>>();
-    // const [progress, setProgress] = useState(100);
+    // progressBar
+    const progressBarRef = useRef<ReturnType<typeof setInterval>>();
+    const [progress, setProgress] = useState(100);
 
-    // useEffect(() => {
-    //   const complete = 0;
-    //   if (toast.duration) {
-    //     progressBarRef.current = setInterval(() => {
-    //       if (progress > complete) {
-    //         setProgress((prev) => prev - 1);
-    //       } else {
-    //         return;
-    //       }
-    //     }, toast.duration / 100);
-    //   }
+    useEffect(() => {
+      const complete = 0;
+      if (toast.duration) {
+        progressBarRef.current = setInterval(() => {
+          if (progress > complete) {
+            setProgress((prev) => prev - 1);
+          } else {
+            return;
+          }
+        }, toast.duration / 100);
+      }
 
-    //   return () => {
-    //     clearInterval(progressBarRef.current);
-    //   };
-    // }, []);
+      return () => {
+        clearInterval(progressBarRef.current);
+      };
+    }, []);
 
-    // const progressbar = toast.progressbar && (
-    //   <ProgressbarBase>
-    //     <ProgressbarSpan
-    //       style={{
-    //         width: `${progress}%`,
-    //         backgroundColor:
-    //           toast.theme === "coloured"
-    //             ? "#fff"
-    //             : getBackgroundColor(toast.type),
-    //         borderRadius: toast.style?.borderRadius
-    //           ? toast.style?.borderRadius
-    //           : "8px",
-    //       }}
-    //     />
-    //   </ProgressbarBase>
-    // );
+    const progressbar = toast.progressbar && (
+      <ProgressbarBase>
+        <ProgressbarSpan
+          style={{
+            width: `${progress}%`,
+            backgroundColor:
+              toast.theme === "coloured"
+                ? "#fff"
+                : getBackgroundColor(toast.type),
+            borderRadius: toast.style?.borderRadius
+              ? toast.style?.borderRadius
+              : "8px",
+          }}
+        />
+      </ProgressbarBase>
+    );
 
     return (
       <ToastBarBase
@@ -169,7 +169,7 @@ export const ToastBar: React.FC<ToastBarProps> = React.memo(
             {icon}
             {message}
             {toast.closeButton && closeButtonSpan}
-            {/* {toast.progressbar && progressbar} */}
+            {toast.progressbar && progressbar}
           </>
         )}
       </ToastBarBase>

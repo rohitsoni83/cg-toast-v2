@@ -95,7 +95,7 @@ export const Toaster: React.FC<ToasterProps> = ({
 }) => {
   const { toasts, handlers } = useToaster(toastOptions);
 
-  return createPortal(
+  return (
     <div
       style={{
         position: "fixed",
@@ -137,7 +137,6 @@ export const Toaster: React.FC<ToasterProps> = ({
           </ToastWrapper>
         );
       })}
-    </div>,
-    document.body
+    </div>
   );
 };
