@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var React = require('react');
 var jsxRuntime = require('react/jsx-runtime');
+var reactDom = require('react-dom');
 
 function _interopNamespaceDefault(e) {
   var n = Object.create(null);
@@ -702,42 +703,52 @@ const Toaster = ({
   hidden = false
 }) => {
   const { toasts, handlers } = useToaster(toastOptions);
-  return /* @__PURE__ */ jsxRuntime.jsx(
-    "div",
-    {
-      style: {
-        position: "fixed",
-        zIndex: 99999,
-        top: DEFAULT_OFFSET,
-        left: DEFAULT_OFFSET,
-        right: DEFAULT_OFFSET,
-        bottom: DEFAULT_OFFSET,
-        pointerEvents: "none",
-        ...containerStyle
-      },
-      className: containerClassName,
-      hidden,
-      children: toasts.map((t) => {
-        const toastPosition = t.position || position;
-        const offset = handlers.calculateOffset(t, {
-          reverseOrder,
-          gutter,
-          defaultPosition: position
-        });
-        const positionStyle = getPositionStyle(toastPosition, offset);
-        return /* @__PURE__ */ jsxRuntime.jsx(
-          ToastWrapper,
-          {
-            id: t.id,
-            onHeightUpdate: handlers.updateHeight,
-            className: t.visible ? activeClass : "",
-            style: positionStyle,
-            children: t.type === "custom" ? resolveValue(t.message, t) : children ? children(t) : /* @__PURE__ */ jsxRuntime.jsx(ToastBar, { toast: t, position: toastPosition })
-          },
-          t.id
-        );
-      })
-    }
+  const [mounted, setMounted] = React__namespace.useState(false);
+  React__namespace.useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) {
+    return null;
+  }
+  return reactDom.createPortal(
+    /* @__PURE__ */ jsxRuntime.jsx(
+      "div",
+      {
+        style: {
+          position: "fixed",
+          zIndex: 99999,
+          top: DEFAULT_OFFSET,
+          left: DEFAULT_OFFSET,
+          right: DEFAULT_OFFSET,
+          bottom: DEFAULT_OFFSET,
+          pointerEvents: "none",
+          ...containerStyle
+        },
+        className: containerClassName,
+        hidden,
+        children: toasts.map((t) => {
+          const toastPosition = t.position || position;
+          const offset = handlers.calculateOffset(t, {
+            reverseOrder,
+            gutter,
+            defaultPosition: position
+          });
+          const positionStyle = getPositionStyle(toastPosition, offset);
+          return /* @__PURE__ */ jsxRuntime.jsx(
+            ToastWrapper,
+            {
+              id: t.id,
+              onHeightUpdate: handlers.updateHeight,
+              className: t.visible ? activeClass : "",
+              style: positionStyle,
+              children: t.type === "custom" ? resolveValue(t.message, t) : children ? children(t) : /* @__PURE__ */ jsxRuntime.jsx(ToastBar, { toast: t, position: toastPosition })
+            },
+            t.id
+          );
+        })
+      }
+    ),
+    document.body
   );
 };
 

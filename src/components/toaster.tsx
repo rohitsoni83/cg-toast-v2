@@ -1,3 +1,5 @@
+"use client";
+
 import { css, setup } from "goober";
 import * as React from "react";
 import { createPortal } from "react-dom";
@@ -94,8 +96,17 @@ export const Toaster: React.FC<ToasterProps> = ({
   hidden = false,
 }) => {
   const { toasts, handlers } = useToaster(toastOptions);
+  const [mounted, setMounted] = React.useState(false);
 
-  return (
+  React.useEffect(() => {
+    setMounted(true); // Ensure the component only renders on the client
+  }, []);
+
+  if (!mounted) {
+    return null; // Prevent SSR rendering
+  }
+
+  return createPortal(
     <div
       style={{
         position: "fixed",
@@ -137,6 +148,7 @@ export const Toaster: React.FC<ToasterProps> = ({
           </ToastWrapper>
         );
       })}
-    </div>
+    </div>,
+    document.body
   );
 };
