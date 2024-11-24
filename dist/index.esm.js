@@ -1,8 +1,7 @@
 "use client";
 import * as React from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import React__default, { useState, useEffect, useCallback, useRef } from 'react';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
-import { createPortal } from 'react-dom';
 
 const isFunction = (valOrFunction) => typeof valOrFunction === "function";
 const resolveValue = (valOrFunction, arg) => isFunction(valOrFunction) ? valOrFunction(arg) : valOrFunction;
@@ -528,6 +527,22 @@ const MessageBarBase = j("div")`
   flex: 1 1 auto;
   white-space: pre-line;
 `;
+const ProgressbarBase = j("div")`
+  position: absolute;
+  bottom: 0.1%;
+  left: 0.5%;
+  right: 0.1%;
+  width: 98%;
+  height: 0.3rem;
+  background-color: transparent;
+`;
+const ProgressbarSpan = j("div")`
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  height: 100%;
+`;
 const CloseButton = j("span")`
   display: flex;
   align-items: center;
@@ -542,7 +557,7 @@ const getAnimationStyle = (position, visible) => {
     animation: visible ? `${h(enter)} 0.35s cubic-bezier(.21,1.02,.73,1) forwards` : `${h(exit)} 0.4s forwards cubic-bezier(.06,.71,.55,1)`
   };
 };
-const ToastBar = React.memo(
+const ToastBar = React__default.memo(
   ({ toast, position, style, children }) => {
     const animationStyle = toast.height ? getAnimationStyle(
       toast.position || position || "top-center",
@@ -551,6 +566,33 @@ const ToastBar = React.memo(
     const icon = /* @__PURE__ */ jsx(ToastIcon, { toast });
     const message = /* @__PURE__ */ jsx(MessageBarBase, { ...toast.ariaProps, children: resolveValue(toast.message, toast) });
     const closeButtonSpan = /* @__PURE__ */ jsx(CloseButton, { children: toast.closeButton });
+    const progressBarRef = useRef();
+    const [progress, setProgress] = useState(100);
+    useEffect(() => {
+      const complete = 0;
+      if (toast.duration) {
+        progressBarRef.current = setInterval(() => {
+          if (progress > complete) {
+            setProgress((prev) => prev - 1);
+          } else {
+            return;
+          }
+        }, toast.duration / 100);
+      }
+      return () => {
+        clearInterval(progressBarRef.current);
+      };
+    }, []);
+    const progressbar = toast.progressbar && /* @__PURE__ */ jsx(ProgressbarBase, { children: /* @__PURE__ */ jsx(
+      ProgressbarSpan,
+      {
+        style: {
+          width: `${progress}%`,
+          backgroundColor: toast.theme === "coloured" ? "#fff" : getBackgroundColor(toast.type),
+          borderRadius: toast.style?.borderRadius ? toast.style?.borderRadius : "8px"
+        }
+      }
+    ) });
     return /* @__PURE__ */ jsx(
       ToastBarBase,
       {
@@ -566,7 +608,8 @@ const ToastBar = React.memo(
         }) : /* @__PURE__ */ jsxs(Fragment, { children: [
           icon,
           message,
-          toast.closeButton && closeButtonSpan
+          toast.closeButton && closeButtonSpan,
+          toast.progressbar && progressbar
         ] })
       }
     );
@@ -637,45 +680,42 @@ const Toaster = ({
   hidden = false
 }) => {
   const { toasts, handlers } = useToaster(toastOptions);
-  return createPortal(
-    /* @__PURE__ */ jsx(
-      "div",
-      {
-        style: {
-          position: "fixed",
-          zIndex: 99999,
-          top: DEFAULT_OFFSET,
-          left: DEFAULT_OFFSET,
-          right: DEFAULT_OFFSET,
-          bottom: DEFAULT_OFFSET,
-          pointerEvents: "none",
-          ...containerStyle
-        },
-        className: containerClassName,
-        hidden,
-        children: toasts.map((t) => {
-          const toastPosition = t.position || position;
-          const offset = handlers.calculateOffset(t, {
-            reverseOrder,
-            gutter,
-            defaultPosition: position
-          });
-          const positionStyle = getPositionStyle(toastPosition, offset);
-          return /* @__PURE__ */ jsx(
-            ToastWrapper,
-            {
-              id: t.id,
-              onHeightUpdate: handlers.updateHeight,
-              className: t.visible ? activeClass : "",
-              style: positionStyle,
-              children: t.type === "custom" ? resolveValue(t.message, t) : children ? children(t) : /* @__PURE__ */ jsx(ToastBar, { toast: t, position: toastPosition })
-            },
-            t.id
-          );
-        })
-      }
-    ),
-    document.body
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      style: {
+        position: "fixed",
+        zIndex: 99999,
+        top: DEFAULT_OFFSET,
+        left: DEFAULT_OFFSET,
+        right: DEFAULT_OFFSET,
+        bottom: DEFAULT_OFFSET,
+        pointerEvents: "none",
+        ...containerStyle
+      },
+      className: containerClassName,
+      hidden,
+      children: toasts.map((t) => {
+        const toastPosition = t.position || position;
+        const offset = handlers.calculateOffset(t, {
+          reverseOrder,
+          gutter,
+          defaultPosition: position
+        });
+        const positionStyle = getPositionStyle(toastPosition, offset);
+        return /* @__PURE__ */ jsx(
+          ToastWrapper,
+          {
+            id: t.id,
+            onHeightUpdate: handlers.updateHeight,
+            className: t.visible ? activeClass : "",
+            style: positionStyle,
+            children: t.type === "custom" ? resolveValue(t.message, t) : children ? children(t) : /* @__PURE__ */ jsx(ToastBar, { toast: t, position: toastPosition })
+          },
+          t.id
+        );
+      })
+    }
   );
 };
 

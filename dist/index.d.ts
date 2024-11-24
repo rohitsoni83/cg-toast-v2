@@ -1,5 +1,5 @@
 import * as React$1 from 'react';
-import { CSSProperties } from 'react';
+import React__default, { CSSProperties } from 'react';
 
 type ToastType = "success" | "error" | "info" | "warning" | "loading" | "blank" | "custom";
 type ToastPosition = string | "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
@@ -87,13 +87,13 @@ declare const useStore: (toastOptions?: DefaultToastOptions) => State;
 interface ToastBarProps {
     toast: Toast;
     position?: ToastPosition;
-    style?: React$1.CSSProperties;
+    style?: React__default.CSSProperties;
     children?: (components: {
         icon: Renderable;
         message: Renderable;
     }) => Renderable;
 }
-declare const ToastBar: React$1.FC<ToastBarProps>;
+declare const ToastBar: React__default.FC<ToastBarProps>;
 
 declare const ToastIcon: React$1.FC<{
     toast: Toast;
