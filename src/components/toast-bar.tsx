@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { styled, keyframes } from 'goober';
+import * as React from "react";
+import { styled, keyframes } from "goober";
 
-import { Toast, ToastPosition, resolveValue, Renderable } from '../core/types';
-import { ToastIcon } from './toast-icon';
-import { prefersReducedMotion } from '../core/utils';
+import { Toast, ToastPosition, resolveValue, Renderable } from "../core/types";
+import { ToastIcon } from "./toast-icon";
+import { getBackgroundColor, prefersReducedMotion } from "../core/utils";
 
 const enterAnimation = (factor: number) => `
 0% {transform: translate3d(0,${factor * -200}%,0) scale(.6); opacity:.5;}
@@ -18,27 +18,53 @@ const exitAnimation = (factor: number) => `
 const fadeInAnimation = `0%{opacity:0;} 100%{opacity:1;}`;
 const fadeOutAnimation = `0%{opacity:1;} 100%{opacity:0;}`;
 
-const ToastBarBase = styled('div')`
+const ToastBarBase = styled("div")`
   display: flex;
   align-items: center;
-  background: #fff;
-  color: #363636;
   line-height: 1.3;
   will-change: transform;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1), 0 3px 3px rgba(0, 0, 0, 0.05);
-  max-width: 350px;
+  max-width: 360px;
   pointer-events: auto;
-  padding: 8px 10px;
   border-radius: 8px;
+  position: relative;
+  font-size: 14px;
+  padding: 6px 8px;
+  font-family: "Roboto", sans-serif;
 `;
 
-const Message = styled('div')`
+const MessageBarBase = styled("div")`
   display: flex;
-  justify-content: center;
-  margin: 4px 10px;
+  justify-content: flex-start;
   color: inherit;
+  margin: 4px 4px 4px 8px;
   flex: 1 1 auto;
   white-space: pre-line;
+`;
+
+const ProgressbarBase = styled("div")`
+  position: absolute;
+  bottom: 0.1%;
+  left: 0.5%;
+  right: 0.1%;
+  width: 98%;
+  height: 0.3rem;
+  background-color: transparent;
+`;
+
+const ProgressbarSpan = styled("div")`
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  height: 100%;
+`;
+
+const CloseButton = styled("span")`
+  display: flex;
+  align-items: center;
+  margin-left: 16px;
+  cursor: pointer;
 `;
 
 interface ToastBarProps {
@@ -55,7 +81,7 @@ const getAnimationStyle = (
   position: ToastPosition,
   visible: boolean
 ): React.CSSProperties => {
-  const top = position.includes('top');
+  const top = position.includes("top");
   const factor = top ? 1 : -1;
 
   const [enter, exit] = prefersReducedMotion()
@@ -73,17 +99,56 @@ export const ToastBar: React.FC<ToastBarProps> = React.memo(
   ({ toast, position, style, children }) => {
     const animationStyle: React.CSSProperties = toast.height
       ? getAnimationStyle(
-          toast.position || position || 'top-center',
+          toast.position || position || "top-center",
           toast.visible
         )
       : { opacity: 0 };
 
     const icon = <ToastIcon toast={toast} />;
     const message = (
-      <Message {...toast.ariaProps}>
+      <MessageBarBase {...toast.ariaProps}>
         {resolveValue(toast.message, toast)}
-      </Message>
+      </MessageBarBase>
     );
+    const closeButtonSpan = <CloseButton>{toast.closeButton}</CloseButton>;
+
+    // // progressBar
+    // const progressBarRef = useRef<ReturnType<typeof setInterval>>();
+    // const [progress, setProgress] = useState(100);
+
+    // useEffect(() => {
+    //   const complete = 0;
+    //   if (toast.duration) {
+    //     progressBarRef.current = setInterval(() => {
+    //       if (progress > complete) {
+    //         setProgress((prev) => prev - 1);
+    //       } else {
+    //         return;
+    //       }
+    //     }, toast.duration / 100);
+    //   }
+
+    //   return () => {
+    //     clearInterval(progressBarRef.current);
+    //   };
+    // }, []);
+
+    // const progressbar = toast.progressbar && (
+    //   <ProgressbarBase>
+    //     <ProgressbarSpan
+    //       style={{
+    //         width: `${progress}%`,
+    //         backgroundColor:
+    //           toast.theme === "coloured"
+    //             ? "#fff"
+    //             : getBackgroundColor(toast.type),
+    //         borderRadius: toast.style?.borderRadius
+    //           ? toast.style?.borderRadius
+    //           : "8px",
+    //       }}
+    //     />
+    //   </ProgressbarBase>
+    // );
 
     return (
       <ToastBarBase
@@ -94,7 +159,7 @@ export const ToastBar: React.FC<ToastBarProps> = React.memo(
           ...toast.style,
         }}
       >
-        {typeof children === 'function' ? (
+        {typeof children === "function" ? (
           children({
             icon,
             message,
@@ -103,6 +168,8 @@ export const ToastBar: React.FC<ToastBarProps> = React.memo(
           <>
             {icon}
             {message}
+            {toast.closeButton && closeButtonSpan}
+            {/* {toast.progressbar && progressbar} */}
           </>
         )}
       </ToastBarBase>

@@ -1,14 +1,14 @@
 import {
-  Renderable,
   Toast,
+  Renderable,
   ToastOptions,
   ToastType,
   DefaultToastOptions,
   ValueOrFunction,
   resolveValue,
-} from './types';
-import { genId } from './utils';
-import { dispatch, ActionType } from './store';
+} from "./types";
+import { genId, getBackgroundColor } from "./utils";
+import { dispatch, ActionType } from "./store";
 
 type Message = ValueOrFunction<Renderable, Toast>;
 
@@ -16,37 +16,59 @@ type ToastHandler = (message: Message, options?: ToastOptions) => string;
 
 const createToast = (
   message: Message,
-  type: ToastType = 'blank',
+  type: ToastType = "blank",
   opts?: ToastOptions
 ): Toast => ({
   createdAt: Date.now(),
   visible: true,
   type,
   ariaProps: {
-    role: 'status',
-    'aria-live': 'polite',
+    role: "status",
+    "aria-live": "polite",
   },
   message,
   pauseDuration: 0,
   ...opts,
   id: opts?.id || genId(),
+  style: {
+    backgroundColor: opts?.style?.backgroundColor
+      ? opts?.style?.backgroundColor
+      : opts?.theme === "coloured"
+      ? getBackgroundColor(type)
+      : "#fff",
+    color: opts?.style?.color
+      ? opts?.style?.color
+      : opts?.theme === "coloured"
+      ? type === "blank"
+        ? "#262626"
+        : "#fff"
+      : "#262626",
+    ...opts?.style,
+  },
+  autoClose: opts?.autoClose === false ? false : true,
 });
 
 const createHandler =
   (type?: ToastType): ToastHandler =>
   (message, options) => {
-    const toast = createToast(message, type, options);
+    const toast = createToast(
+      typeof message === "string" ? message.trim() : message,
+      type,
+      { ...options, theme: options?.theme ? options?.theme : "coloured" }
+    );
     dispatch({ type: ActionType.UPSERT_TOAST, toast });
     return toast.id;
   };
 
 const toast = (message: Message, opts?: ToastOptions) =>
-  createHandler('blank')(message, opts);
+  createHandler("blank")(message, opts);
 
-toast.error = createHandler('error');
-toast.success = createHandler('success');
-toast.loading = createHandler('loading');
-toast.custom = createHandler('custom');
+toast.success = createHandler("success");
+toast.info = createHandler("info");
+toast.error = createHandler("error");
+toast.warning = createHandler("warning");
+toast.loading = createHandler("loading");
+toast.custom = createHandler("custom");
 
 toast.dismiss = (toastId?: string) => {
   dispatch({

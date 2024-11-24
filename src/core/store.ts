@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { DefaultToastOptions, Toast, ToastType } from './types';
+import { useEffect, useState } from "react";
+import { DefaultToastOptions, Toast, ToastType } from "./types";
 
 const TOAST_LIMIT = 20;
 
@@ -48,7 +48,7 @@ interface State {
   pausedAt: number | undefined;
 }
 
-const toastTimeouts = new Map<Toast['id'], ReturnType<typeof setTimeout>>();
+const toastTimeouts = new Map<Toast["id"], ReturnType<typeof setTimeout>>();
 
 export const TOAST_EXPIRE_DISMISS_DELAY = 1000;
 
@@ -173,7 +173,9 @@ export const defaultTimeouts: {
 } = {
   blank: 4000,
   error: 4000,
-  success: 2000,
+  success: 4000,
+  info: 4000,
+  warning: 4000,
   loading: Infinity,
   custom: 4000,
 };
